@@ -2,9 +2,7 @@ import sqlite3
 import csv
 from datetime import date
 
-# ==========================
 # DATABASE SETUP
-# ==========================
 conn = sqlite3.connect("attendance.db")
 cursor = conn.cursor()
 
@@ -28,10 +26,7 @@ CREATE TABLE IF NOT EXISTS attendance (
 conn.commit()
 conn.close()
 
-
-# ==========================
 # ADD STUDENT
-# ==========================
 def add_student():
     try:
         roll = int(input("Enter Roll Number: "))
@@ -56,10 +51,7 @@ def add_student():
     except ValueError:
         print("Please enter a valid roll number.")
 
-
-# ==========================
 # MARK ATTENDANCE
-# ==========================
 def mark_attendance():
     try:
         roll = int(input("Enter Roll Number: "))
@@ -101,10 +93,7 @@ def mark_attendance():
     except ValueError:
         print("Please enter a valid roll number.")
 
-
-# ==========================
 # VIEW ATTENDANCE
-# ==========================
 def view_attendance():
     conn = sqlite3.connect("attendance.db")
     cursor = conn.cursor()
@@ -134,18 +123,12 @@ def view_attendance():
 
         for record in records:
             print("{:<10} {:<20} {:<15} {:<10}".format(
-                record[0],
-                record[1],
-                record[2],
-                record[3]
+                record[0],record[1],record[2],record[3]
             ))
 
     conn.close()
 
-
-# ==========================
 # VIEW STUDENTS
-# ==========================
 def view_students():
     conn = sqlite3.connect("attendance.db")
     cursor = conn.cursor()
@@ -169,10 +152,7 @@ def view_students():
 
     conn.close()
 
-
-# ==========================
 # SEARCH STUDENT
-# ==========================
 def search_student():
     try:
         roll = int(input("Enter Roll Number to Search: "))
@@ -199,10 +179,7 @@ def search_student():
     except ValueError:
         print("Please enter a valid roll number.")
 
-
-# ==========================
 # UPDATE STUDENT NAME
-# ==========================
 def update_student():
     try:
         roll = int(input("Enter Roll Number: "))
@@ -227,10 +204,7 @@ def update_student():
     except ValueError:
         print("Please enter a valid roll number.")
 
-
-# ==========================
 # DELETE STUDENT
-# ==========================
 def delete_student():
     try:
         roll = int(input("Enter Roll Number to Delete: "))
@@ -259,10 +233,7 @@ def delete_student():
     except ValueError:
         print("Please enter a valid roll number.")
 
-
-# ==========================
 # ATTENDANCE PERCENTAGE
-# ==========================
 def attendance_percentage():
     try:
         roll = int(input("Enter Roll Number: "))
@@ -295,9 +266,8 @@ def attendance_percentage():
 
     except ValueError:
         print("Please enter a valid roll number.")
-# ==========================
+
 # EXPORT ATTENDANCE TO CSV
-# ==========================
 def export_to_csv():
 
     conn = sqlite3.connect("attendance.db")
@@ -339,9 +309,46 @@ def export_to_csv():
     print("\nAttendance report exported successfully!")
     print("File Name: attendance_report.csv")
 
-# ==========================
+# VIEW ATTENDANCE BY DATE
+def attendance_by_date():
+    date_input = input("Enter Date (YYYY-MM-DD): ")
+
+    conn = sqlite3.connect("attendance.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT students.roll_no,
+               students.name,
+               attendance.status
+        FROM students
+        JOIN attendance
+        ON students.roll_no = attendance.roll_no
+        WHERE attendance.date = ?
+        ORDER BY students.roll_no
+    """, (date_input,))
+
+    records = cursor.fetchall()
+
+    conn.close()
+
+    if len(records) == 0:
+        print("\nNo attendance found for this date.")
+    else:
+        print("\nAttendance Report")
+        print("-" * 50)
+        print("{:<10} {:<20} {:<10}".format(
+            "Roll No", "Name", "Status"
+        ))
+        print("-" * 50)
+
+        for record in records:
+            print("{:<10} {:<20} {:<10}".format(
+                record[0],
+                record[1],
+                record[2]
+            ))
+
 # DASHBOARD SUMMARY
-# ==========================
 def dashboard_summary():
 
     conn = sqlite3.connect("attendance.db")
@@ -374,10 +381,7 @@ def dashboard_summary():
     print(f"Absent               : {total_absent}")
     print("=" * 40)
 
-
-# ==========================
 # MAIN MENU
-# ==========================
 while True:
     print("\n===== STUDENT ATTENDANCE MANAGEMENT SYSTEM =====")
     print("1. Add Student")
@@ -390,7 +394,8 @@ while True:
     print("8. Attendance Percentage")
     print("9. Dashboard Summary")
     print("10. Export Attendance to CSV")
-    print("11. Exit")
+    print("11. Attendance By Date")
+    print("12. Exit")
 
     choice = input("Enter your choice: ")
 
@@ -424,7 +429,10 @@ while True:
     elif choice == '10':
         export_to_csv()
 
-    elif choice == '11':
+    elif choice== '11':
+        attendance_by_date() 
+
+    elif choice == '12':
         print("Thank you for using the system!")
         break
      
