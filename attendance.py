@@ -1,4 +1,5 @@
 import sqlite3
+import csv
 from datetime import date
 
 # ==========================
@@ -294,6 +295,84 @@ def attendance_percentage():
 
     except ValueError:
         print("Please enter a valid roll number.")
+# ==========================
+# EXPORT ATTENDANCE TO CSV
+# ==========================
+def export_to_csv():
+
+    conn = sqlite3.connect("attendance.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT students.roll_no,
+               students.name,
+               attendance.date,
+               attendance.status
+        FROM students
+        JOIN attendance
+        ON students.roll_no = attendance.roll_no
+        ORDER BY attendance.date
+    """)
+
+    records = cursor.fetchall()
+
+    if len(records) == 0:
+        print("No attendance records found.")
+        conn.close()
+        return
+
+    with open("attendance_report.csv", "w", newline="") as file:
+
+        writer = csv.writer(file)
+
+        writer.writerow([
+            "Roll No",
+            "Name",
+            "Date",
+            "Status"
+        ])
+
+        writer.writerows(records)
+
+    conn.close()
+
+    print("\nAttendance report exported successfully!")
+    print("File Name: attendance_report.csv")
+
+# ==========================
+# DASHBOARD SUMMARY
+# ==========================
+def dashboard_summary():
+
+    conn = sqlite3.connect("attendance.db")
+    cursor = conn.cursor()
+
+    # Total Students
+    cursor.execute("SELECT COUNT(*) FROM students")
+    total_students = cursor.fetchone()[0]
+
+    # Total Attendance Records
+    cursor.execute("SELECT COUNT(*) FROM attendance")
+    total_records = cursor.fetchone()[0]
+
+    # Total Present
+    cursor.execute("SELECT COUNT(*) FROM attendance WHERE status='Present'")
+    total_present = cursor.fetchone()[0]
+
+    # Total Absent
+    cursor.execute("SELECT COUNT(*) FROM attendance WHERE status='Absent'")
+    total_absent = cursor.fetchone()[0]
+
+    conn.close()
+
+    print("\n" + "=" * 40)
+    print("        DASHBOARD SUMMARY")
+    print("=" * 40)
+    print(f"Total Students       : {total_students}")
+    print(f"Attendance Records   : {total_records}")
+    print(f"Present              : {total_present}")
+    print(f"Absent               : {total_absent}")
+    print("=" * 40)
 
 
 # ==========================
@@ -309,7 +388,9 @@ while True:
     print("6. Update Student Name")
     print("7. Delete Student")
     print("8. Attendance Percentage")
-    print("9. Exit")
+    print("9. Dashboard Summary")
+    print("10. Export Attendance to CSV")
+    print("11. Exit")
 
     choice = input("Enter your choice: ")
 
@@ -338,8 +419,14 @@ while True:
         attendance_percentage()
 
     elif choice == '9':
+        dashboard_summary()
+    
+    elif choice == '10':
+        export_to_csv()
+
+    elif choice == '11':
         print("Thank you for using the system!")
         break
-
+     
     else:
         print("Invalid choice. Please try again.")
